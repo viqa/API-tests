@@ -1,7 +1,5 @@
 describe('API Testing', () => {
-
     it('API Tests', () => {
-
         //getting token
         cy.request({
             method: 'POST',
@@ -16,12 +14,8 @@ describe('API Testing', () => {
             }
         }).as('getToken').then((response) => {
             expect(response.status).to.eq(200)
-            cy.log(response.body)
         }).its('body').then((body) => {
-
             const auth = body.token
-
-
             //createBooking
             cy.request({
                 method: 'POST',
@@ -32,30 +26,34 @@ describe('API Testing', () => {
                 },
                 body: {
                     //its possible to use faker to randomize the data as well.
-                    "firstname": "Vini",
-                    "lastname": "Milani",
-                    "totalprice": "100",
-                    "depositpaid": "true",
-                    "bookingdates": {
-                        "checkin": "2020-05-01",
-                        "checkout": "2020-05-02"
+                    firstname: "Vini",
+                    lastname: "Milani",
+                    totalprice: "100",
+                    depositpaid: "true",
+                    bookingdates: {
+                        checkin: "2020-05-01",
+                        checkout: "2020-05-02"
                     },
-                    "additionalneeds": "Breakfast"
+                    additionalneeds: "Breakfast"
                 }
             }).then((response) => {
                 expect(response.status).to.eq(200)
-                cy.log(response.body)
+                expect(response.body.booking).to.have.property('bookingdates')
+                expect(response.body.booking).to.have.property('depositpaid')
+                expect(response.body.booking).to.have.property('firstname')
+                expect(response.body.booking).to.have.property('lastname')
+                expect(response.body.booking).to.have.property('totalprice')
             }).its('body').then((body) => {
 
                 const bookID = body.bookingid
                 //getBooking
                 cy.request({
                     method: 'GET',
-                    url: '/booking/' + bookID, //we could ramdomize this number using js
+                    url: '/booking/' + bookID,
                     form: true,
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'token: ' + auth
+                        'Cookie': 'token=' + auth
                     },
                 }).then((response) => {
                     expect(response.status).to.eq(200)
@@ -66,7 +64,7 @@ describe('API Testing', () => {
                     expect(response.body).to.have.property('totalprice')
                     cy.log(response.body)
                 })
-
+                cy.log(auth)
                 //updateBooking
                 cy.request({
                     method: 'PUT',
@@ -74,20 +72,27 @@ describe('API Testing', () => {
                     form: true,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Cookie': 'token=' + auth
                     },
                     body: {
-                        "firstname": "Vini",
-                        "lastname": "Milani",
-                        "totalprice": "100",
-                        "depositpaid": "true",
-                        "bookingdates": {
-                            "checkin": "2020-05-01",
-                            "checkout": "2020-05-02"
+                        firstname: "Vinix",
+                        lastname: "Milani",
+                        totalprice: "100",
+                        depositpaid: "true",
+                        bookingdates: {
+                            checkin: "2020-05-01",
+                            checkout: "2020-05-02"
                         },
-                        "additionalneeds": "Breakfast"
+                        additionalneeds: "Breakfast"
                     }
+                }).then((response) => {
+                    expect(response.status).to.eq(200)
+                    expect(response.body).to.have.property('bookingdates')
+                    expect(response.body).to.have.property('depositpaid')
+                    expect(response.body).to.have.property('firstname')
+                    expect(response.body).to.have.property('lastname')
+                    expect(response.body).to.have.property('totalprice')
                 })
-
             })
         })
     })
